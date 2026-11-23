@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <title>91 影音</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./vendor/hls.light.min.js" defer></script>
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <div id="video91-app">
+    <div class="app">
+      <header class="toolbar">
+        <div class="toolbar-inner">
+          <div class="branding">
+            <button class="icon-button" id="leave" type="button" aria-label="返回插件中心" hidden></button>
+            <img src="./icon.svg" class="brand-icon" width="36" height="36" alt="">
+            <span>91 影音</span>
+          </div>
+          <nav class="segments" aria-label="页面">
+            <button type="button" data-view="library" aria-current="page">影片库</button>
+            <button type="button" data-view="connection">播放器连接</button>
+          </nav>
+        </div>
+      </header>
+
+      <main class="content">
+        <section id="library" aria-labelledby="library-heading">
+          <div class="heading-row">
+            <div>
+              <h1 id="library-heading" tabindex="-1">影片库</h1>
+              <p class="support" id="collection-name">最近更新</p>
+            </div>
+            <form role="search" id="search-form" class="search">
+              <span aria-hidden="true" id="search-icon"></span>
+              <input id="search" name="q" type="search" maxlength="120" aria-label="搜索影片" placeholder="搜索影片标题" autocomplete="off">
+              <button class="button subtle" type="submit">搜索</button>
+            </form>
+          </div>
+          <nav class="category-bar" aria-label="影片分类">
+            <div id="categories" class="filters"></div>
+            <label class="category-picker" hidden>
+              <select id="all-categories" class="category-select" aria-label="全部分类">
+                <option value="" disabled selected>全部分类</option>
+              </select>
+            </label>
+          </nav>
+          <div id="library-status" class="status" role="status" aria-live="polite"></div>
+          <div id="grid" class="grid" aria-busy="true"></div>
+          <div class="pagination" id="pagination" hidden>
+            <button class="button" id="previous" type="button">上一页</button>
+            <span id="page-label">第 1 页</span>
+            <button class="button" id="next" type="button">下一页</button>
+          </div>
+        </section>
+
+        <section id="watch" class="watch" aria-labelledby="watch-title" hidden>
+          <div class="watch-head">
+            <button class="button" type="button" id="watch-back"></button>
+            <div class="field line-select" hidden>
+              <label for="lines">播放线路</label>
+              <select id="lines"></select>
+            </div>
+          </div>
+          <div class="video-stage">
+            <video id="video" controls playsinline preload="none"></video>
+            <div class="video-state" id="player-status" role="status">
+              <p id="player-message"></p>
+              <button class="button player-button" id="retry-player" type="button" hidden>重新加载</button>
+            </div>
+          </div>
+          <div class="detail">
+            <h1 id="watch-title" tabindex="-1">播放</h1>
+            <p id="watch-meta" class="support"></p>
+            <p id="watch-overview" class="overview" hidden></p>
+          </div>
+        </section>
+
+        <section id="connection" aria-labelledby="connection-heading" hidden>
+          <div class="heading-row connection-head">
+            <div>
+              <h1 id="connection-heading" tabindex="-1">播放器连接</h1>
+              <p class="support">用 Emby 模式添加这个影片库，在外部播放器浏览和直播放。</p>
+            </div>
+            <span id="listener-status" class="indicator"><i aria-hidden="true"></i><span>正在读取</span></span>
+          </div>
+          <div id="settings-status" class="status" role="status" aria-live="polite"></div>
+          <div class="settings-layout">
+            <div class="settings-stack">
+              <section class="panel" aria-labelledby="account-heading">
+                <h2 id="account-heading">播放器账号</h2>
+                <form id="account-form" class="form">
+                  <label class="field">用户名 <input name="username" placeholder="video91" autocomplete="off" maxlength="48" required></label>
+                  <p id="password-hint" class="support">为播放器生成独立密码。</p>
+                  <button class="button" id="create-account" type="submit">创建账号</button>
+                </form>
+                <div class="secret" id="password-box" hidden>
+                  <div><strong>本次生成的密码</strong><code id="new-password" tabindex="0"></code></div>
+                  <button class="button" type="button" data-copy="new-password">复制密码</button>
+                </div>
+              </section>
+              <section class="panel" aria-labelledby="listen-heading">
+                <h2 id="listen-heading">监听端口</h2>
+                <form class="form" id="listen-form">
+                  <div class="form-grid">
+                    <label class="field">范围
+                      <select name="host"><option value="0.0.0.0">同一网络</option><option value="127.0.0.1">仅宿主本机</option></select>
+                    </label>
+                    <label class="field">端口 <input name="port" type="number" min="1024" max="65535" step="1" inputmode="numeric" value="8097" required></label>
+                  </div>
+                  <p class="support">Docker 部署时，将此端口映射到宿主机后再连接。</p>
+                  <div class="actions">
+                    <button class="button primary" id="start-listener" type="submit">开启监听</button>
+                    <button class="button danger" id="stop-listener" type="button" hidden>关闭监听</button>
+                  </div>
+                </form>
+              </section>
+            </div>
+            <section class="panel join-panel" aria-labelledby="join-heading">
+              <h2 id="join-heading">添加到播放器</h2>
+              <p class="support">在播放器中选择 Emby，填写服务器地址和上面生成的账号。</p>
+              <div class="join-address">
+                <span>服务器地址</span>
+                <code id="server-address" tabindex="0">开启监听后显示</code>
+              </div>
+              <div class="actions">
+                <button class="button" type="button" data-copy="server-address" id="copy-address" disabled>复制地址</button>
+                <button class="button subtle" type="button" id="reveal-key" disabled>显示 API Key</button>
+              </div>
+              <div class="secret" id="key-box" hidden>
+                <code id="api-key" tabindex="0"></code>
+                <button class="button" type="button" data-copy="api-key">复制 Key</button>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

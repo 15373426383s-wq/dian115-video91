@@ -1,0 +1,8 @@
+{
+  "name": "dian115-video91",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  }
+}
